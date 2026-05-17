@@ -235,9 +235,40 @@ cat <<'INSTALLER_EOF' > "$FILE_DIR/populate_offerings.sh"
 #!/bin/bash
 
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
-        INSERT INTO courses (course_name, department_id, type_id) VALUES ('Software Engineering', 5, 4);
-        INSERT INTO course_offerings (course_id, teacher_id, room_id, period) VALUES (1, 1, 1, 3);
-        INSERT INTO course_offerings (course_id, teacher_id, room_id, period) VALUES (1, 2, 2, 5);
+        -- Step 1: Insert Core Courses (This generates course_id 1, 2, 3, 4)
+        INSERT INTO courses (course_name, department_id, type_id) VALUES
+        ('Software Engineering', 5, 4),  -- course_id: 1 (Tech Elective)
+        ('AP Computer Science A', 5, 3), -- course_id: 2 (Tech AP)
+        ('Advanced Java Applications', 5, 2), -- course_id: 3 (Tech Honors)
+        ('Data Structures & Algorithms', 5, 4); -- course_id: 4 (Tech Elective)
+
+        -- Step 2: Populate Offerings with Strict Teacher & Room Constraints
+        -- Format: (course_id, teacher_id, room_id, period)
+        INSERT INTO course_offerings (course_id, teacher_id, room_id, period) VALUES
+        -- --- Period 1 Offerings ---
+        (1, 3, 1, 1),  -- Teacher 3 in Room 1
+        (2, 4, 2, 1),  -- Teacher 4 in Room 2
+        (3, 5, 3, 1),  -- Teacher 5 in Room 3
+
+        -- --- Period 2 Offerings ---
+        (1, 6, 4, 2),  -- Teacher 6 in Room 4
+        (2, 7, 5, 2),  -- Teacher 7 in Room 5
+        (4, 8, 6, 2),  -- Teacher 8 in Room 6
+
+        -- --- Period 3 Offerings ---
+        (1, 1, 1, 3),  -- Teacher 1 in Room 1 (Original)
+        (3, 9, 7, 3),  -- Teacher 9 in Room 7
+        (4, 10, 8, 3), -- Teacher 10 in Room 8
+
+        -- --- Period 4 Offerings ---
+        (2, 11, 9, 4),  -- Teacher 11 in Room 9
+        (3, 12, 10, 4), -- Teacher 12 in Room 10
+        (4, 13, 11, 4), -- Teacher 13 in Room 11
+
+        -- --- Period 5 Offerings ---
+        (1, 2, 2, 5),   -- Teacher 2 in Room 2 (Original)
+        (2, 14, 12, 5), -- Teacher 14 in Room 12
+        (4, 15, 13, 5); -- Teacher 15 in Room 13
 SQL_EOF
 INSTALLER_EOF
 
