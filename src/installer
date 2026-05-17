@@ -1,3 +1,4 @@
+lol
 mkdir -p /home/$USER/Projects/DatabaseDesign/database_app/files
 cat << 'DATABASE_DESIGN_PROJECT' > /home/$USER/Projects/DatabaseDesign/database_design_project_installer.sh
 #!/bin/bash
