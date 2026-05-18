@@ -96,7 +96,7 @@ cat <<'INSTALLER_EOF' > "$FILE_DIR/populate.sh"
 #!/bin/bash
 
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
-INSERT INTO departments (department_name) VALUES ('Math'), ('Science'), ('English'), ('History'), ('Technology');
+INSERT INTO departments (department_name) VALUES ('Math'), ('Science'), ('English'), ('History'), ('Technology'), ('Clubs');
 INSERT INTO course_types (type_name) VALUES ('Regents'), ('Honors'), ('AP'), ('Elective');
 INSERT INTO assignment_types (type_name) VALUES ('Homework'), ('Quiz'), ('Test'), ('Project');
 SQL_EOF
@@ -235,40 +235,80 @@ cat <<'INSTALLER_EOF' > "$FILE_DIR/populate_offerings.sh"
 #!/bin/bash
 
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
-        -- Step 1: Insert Core Courses (This generates course_id 1, 2, 3, 4)
+        -- Step 1: Insert Core & Expanded Courses (Generates course_id 1 to 20)
         INSERT INTO courses (course_name, department_id, type_id) VALUES
-        ('Software Engineering', 5, 4),  -- course_id: 1 (Tech Elective)
-        ('AP Computer Science A', 5, 3), -- course_id: 2 (Tech AP)
-        ('Advanced Java Applications', 5, 2), -- course_id: 3 (Tech Honors)
-        ('Data Structures & Algorithms', 5, 4); -- course_id: 4 (Tech Elective)
+        -- --- Computer Science Department (ID: 5) ---
+        ('Software Engineering', 5, 4),        -- course_id: 1
+        ('AP Computer Science A', 5, 3),       -- course_id: 2
+        ('Advanced Java Applications', 5, 2),  -- course_id: 3
+        ('Data Structures & Algorithms', 5, 4),-- course_id: 4
 
-        -- Step 2: Populate Offerings with Strict Teacher & Room Constraints
+        -- --- Mathematics Department (ID: 1) ---
+        ('AP Calculus BC', 1, 3),               -- course_id: 5
+        ('Linear Algebra', 1, 2),               -- course_id: 6
+        ('Pre-Calculus Honors', 1, 2),          -- course_id: 7
+        ('Statistics & Data Science', 1, 4),    -- course_id: 8
+
+        -- --- Science Department (ID: 2) ---
+        ('AP Physics C: Mechanics', 2, 3),     -- course_id: 9
+        ('AP Chemistry', 2, 3),                 -- course_id: 10
+        ('Organic Chemistry', 2, 2),            -- course_id: 11
+        ('Digital Electronics', 2, 4),          -- course_id: 12
+
+        -- --- English & Humanities (ID: 3) ---
+        ('AP English Literature', 3, 3),        -- course_id: 13
+        ('Creative Writing Portfolio', 3, 4),   -- course_id: 14
+        ('Public Speaking & Debate', 3, 1),     -- course_id: 15
+
+        -- --- Social Studies & History (ID: 4) ---
+        ('AP United States History', 4, 3),     -- course_id: 16
+        ('AP Macroeconomics', 4, 3),            -- course_id: 17
+        ('Constitutional Law', 4, 2),           -- course_id: 18
+
+        -- --- World Languages & Culture (ID: 6) ---
+        ('AP Chinese Language & Culture', 6, 3),-- course_id: 19
+        ('American Sign Language III', 6, 2);   -- course_id: 20
+
+        -- Step 2: Populate Expanded Offerings with Strict Schedule Tracking
         -- Format: (course_id, teacher_id, room_id, period)
+        -- Rule: A unique teacher cannot be in two rooms during the same period.
         INSERT INTO course_offerings (course_id, teacher_id, room_id, period) VALUES
-        -- --- Period 1 Offerings ---
-        (1, 3, 1, 1),  -- Teacher 3 in Room 1
-        (2, 4, 2, 1),  -- Teacher 4 in Room 2
-        (3, 5, 3, 1),  -- Teacher 5 in Room 3
+        -- --- Period 1 ---
+        (1, 3, 1, 1),   -- Software Eng (Teacher 3, Room 1)
+        (2, 4, 2, 1),   -- AP CS A (Teacher 4, Room 2)
+        (5, 16, 15, 1), -- AP Calc BC (Teacher 16, Room 15)
+        (9, 20, 22, 1), -- AP Physics (Teacher 20, Room 22)
 
-        -- --- Period 2 Offerings ---
-        (1, 6, 4, 2),  -- Teacher 6 in Room 4
-        (2, 7, 5, 2),  -- Teacher 7 in Room 5
-        (4, 8, 6, 2),  -- Teacher 8 in Room 6
+        -- --- Period 2 ---
+        (1, 6, 4, 2),   -- Software Eng (Teacher 6, Room 4)
+        (4, 8, 6, 2),   -- Data Structures (Teacher 8, Room 6)
+        (6, 17, 16, 2), -- Linear Algebra (Teacher 17, Room 16)
+        (10, 21, 23, 2),-- AP Chemistry (Teacher 21, Room 23)
+        (13, 25, 30, 2),-- AP Eng Lit (Teacher 25, Room 30)
 
-        -- --- Period 3 Offerings ---
-        (1, 1, 1, 3),  -- Teacher 1 in Room 1 (Original)
-        (3, 9, 7, 3),  -- Teacher 9 in Room 7
-        (4, 10, 8, 3), -- Teacher 10 in Room 8
+        -- --- Period 3 ---
+        (1, 1, 1, 3),   -- Software Eng (Teacher 1, Room 1)
+        (3, 9, 7, 3),   -- Adv Java (Teacher 9, Room 7)
+        (7, 18, 17, 3), -- Pre-Calc H (Teacher 18, Room 17)
+        (12, 22, 24, 3),-- Digital Elec (Teacher 22, Room 24)
+        (16, 28, 35, 3),-- AP US History (Teacher 28, Room 35)
+        (20, 32, 42, 3),-- ASL III (Teacher 32, Room 42)
 
-        -- --- Period 4 Offerings ---
-        (2, 11, 9, 4),  -- Teacher 11 in Room 9
-        (3, 12, 10, 4), -- Teacher 12 in Room 10
-        (4, 13, 11, 4), -- Teacher 13 in Room 11
+        -- --- Period 4 ---
+        (2, 11, 9, 4),  -- AP CS A (Teacher 11, Room 9)
+        (4, 13, 11, 4), -- Data Structures (Teacher 13, Room 11)
+        (8, 19, 18, 4), -- Statistics (Teacher 19, Room 18)
+        (11, 23, 25, 4),-- Organic Chem (Teacher 23, Room 25)
+        (14, 26, 31, 4),-- Creative Writ (Teacher 26, Room 31)
+        (17, 29, 36, 4),-- AP Macro (Teacher 29, Room 36)
 
-        -- --- Period 5 Offerings ---
-        (1, 2, 2, 5),   -- Teacher 2 in Room 2 (Original)
-        (2, 14, 12, 5), -- Teacher 14 in Room 12
-        (4, 15, 13, 5); -- Teacher 15 in Room 13
+        -- --- Period 5 ---
+        (1, 2, 2, 5),   -- Software Eng (Teacher 2, Room 2)
+        (3, 12, 10, 5), -- Adv Java (Teacher 12, Room 10)
+        (5, 35, 19, 5), -- AP Calc BC (Teacher 35, Room 19)
+        (15, 27, 32, 5),-- Public Speak (Teacher 27, Room 32)
+        (18, 30, 37, 5),-- Const Law (Teacher 30, Room 37)
+        (19, 31, 41, 5);-- AP Chinese (Teacher 31, Room 41)
 SQL_EOF
 INSTALLER_EOF
 
