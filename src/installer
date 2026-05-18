@@ -14,7 +14,8 @@ touch "$FILES_DIR/create_tables.sh"
 touch "$FILES_DIR/populate.sh"
 touch "$FILES_DIR/populate_teachers.sh"
 touch "$FILES_DIR/populate_rooms.sh"
-touch "$FILES_DIR/populate_offerings.sh"
+touch "$FILES_DIR/populate_courses.sh"
+touch "$FILES_DIR/populate_course_offerings.sh"
 touch "$FILES_DIR/populate_students.sh"
 touch "$FILES_DIR/populate_roster.sh"
 touch "$FILES_DIR/populate_assignments.sh"
@@ -51,7 +52,8 @@ bash "$FILES_DIR/populate.sh"
 bash "$FILES_DIR/populate_teachers.sh"
 bash "$FILES_DIR/populate_rooms.sh"
 bash "$FILES_DIR/populate_students.sh"
-bash "$FILES_DIR/populate_offerings.sh"
+bash "$FILES_DIR/populate_courses.sh"
+bash "$FILES_DIR/populate_course_offerings.sh"
 bash "$FILES_DIR/populate_roster.sh"
 bash "$FILES_DIR/populate_assignments.sh"
 bash "$FILES_DIR/populate_grades.sh"
@@ -232,12 +234,11 @@ rm $ROOMS_SQL
 echo "Rooms populated successfully (Floors 1-8 + Specials)!"
 INSTALLER_EOF
 
-# downloading populate_offerings.sh
-cat <<'INSTALLER_EOF' > "$FILES_DIR/populate_offerings.sh"
+# downloading populate_courses.sh
+cat <<'INSTALLER_EOF' > "$FILES_DIR/populate_courses.sh"
 #!/bin/bash
 
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
-        -- Step 1: Insert Core & Expanded Courses (Generates course_id 1 to 20)
         INSERT INTO courses (course_name, department_id, type_id) VALUES
         -- --- Computer Science Department (ID: 5) ---
         ('Software Engineering', 5, 4),        -- course_id: 1
@@ -270,7 +271,14 @@ mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
         -- --- World Languages & Culture (ID: 6) ---
         ('AP Chinese Language & Culture', 6, 3),-- course_id: 19
         ('American Sign Language III', 6, 2);   -- course_id: 20
+SQL_EOF
+INSTALLER_EOF
 
+# downloading populate_course_offerings.sh
+cat <<'INSTALLER_EOF' > "$FILES_DIR/populate_course_offerings.sh"
+#!/bin/bash
+
+mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
         -- Step 2: Populate Expanded Offerings with Strict Schedule Tracking
         -- Format: (course_id, teacher_id, room_id, period)
         -- Rule: A unique teacher cannot be in two rooms during the same period.
