@@ -8,6 +8,7 @@ BASE_DIR="/home/$USER/Projects/DatabaseDesign"
 mkdir -p "$FILE_DIR"
 
 touch "$BASE_DIR/launcher.sh"
+touch "$BASE_DIR/uninstaller.sh"
 touch "$FILE_DIR/create_tables.sh"
 touch "$FILE_DIR/populate.sh"
 touch "$FILE_DIR/populate_teachers.sh"
@@ -5451,8 +5452,71 @@ FROM rosters r
 JOIN assignments a ON r.offering_id = a.offering_id;
 SQL_EOF
 INSTALLER_EOF
+
+# downloading uninstaller.sh
+cat <<'INSTALLER_EOF' > "$FILE_DIR/uninstaller.sh"
+#!/bin/bash
+
+# Define project directories
+BASE_DIR="/home/$USER/Projects/DatabaseDesign"
+FILE_DIR="$BASE_DIR/database_app/files"
+
+echo "========================================="
+echo "   PROJECT SATURN UNINSTALLER SYSTEM     "
+echo "========================================="
+echo "WARNING: This will drop your database and delete all automation scripts."
+echo -n "Are you sure you want to proceed? (y/N): "
+read CONFIRM
+
+if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+    echo "Uninstall canceled."
+    exit 0
+fi
+
+# 1. Ask for database credentials to drop the environment
+echo -n "Enter your MySQL Username to purge data: "
+read DB_USER
+echo -n "Enter your Password: "
+read -s DB_PASS
+echo ""
+
+DB_NAME="al_db" # Replace with your actual database name if different
+
+echo "Dropping database '$DB_NAME'..."
+mysql -h "localhost" -u "$DB_USER" -p"$DB_PASS" -e "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null
+
+if [ $? -eq 0 ]; then
+    echo "✔ Database purged successfully."
+else
+    echo "❌ Failed to drop database. Moving forward with file removal anyway."
+fi
+
+# 2. Delete application files and modular scripts
+echo "Removing application files from $FILE_DIR..."
+if [ -d "$FILE_DIR" ]; then
+    rm -rf "$FILE_DIR"
+    echo "✔ Cleaned out internal components directory."
+fi
+
+# 3. Delete the launcher script
+if [ -f "$BASE_DIR/launcher.sh" ]; then
+    rm -f "$BASE_DIR/launcher.sh"
+    echo "✔ Launcher removed."
+fi
+
+# 4. Deleting the installer configuration file
+if [ -f "$BASE_DIR/database_design_project_installer.sh" ]; then
+    rm -f "$BASE_DIR/database_design_project_installer.sh"
+    echo "✔ Original installer template removed."
+fi
+
+echo "-----------------------------------------"
+echo "Uninstall complete! Project Saturn has been removed."
+echo "Note: This uninstaller script will now close. You can manually delete this file."
+echo "========================================="
+INSTALLER_EOF
 DATABASE_DESIGN_PROJECT
 
 chmod +x /home/$USER/Projects/DatabaseDesign/database_design_project_installer.sh
 /home/$USER/Projects/DatabaseDesign/database_design_project_installer.sh
-/home/$USER/Projects/DatabaseDesign/launcher.sh
+bash /home/$USER/Projects/DatabaseDesign/launcher.sh
