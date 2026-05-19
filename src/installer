@@ -5429,73 +5429,66 @@ INSTALLER_EOF
 cat <<'INSTALLER_EOF' > "$FILES_DIR/populate_assignments.sh"
 #!/bin/bash
 
+echo "Generating 15 assignments (12 minor, 3 major) for ALL course offerings..."
+
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
-INSERT INTO assignments (offering_id, assignment_name, type_id, max_points) VALUES
-(1, 'Database Schema Design', 4, 100),
-(1, 'SQL Joins Quiz', 2, 50),
-(1, 'HW 1: Entity-Relationship Diagrams', 1, 20),
-(1, 'HW 2: Normalization & 3NF Forms', 1, 20),
-(1, 'Midterm Exam: Relational Algebra', 3, 100),
-(1, 'SQL Aggregations Lab', 4, 75),
-(1, 'HW 3: Indexing and Optimization', 1, 20),
-(1, 'Final Exam: Database Architecture', 3, 150),
-(2, 'Project Saturn Setup', 4, 100),
-(2, 'Bash Scripting Test', 3, 100),
-(2, 'HW 1: Linux File Permissions', 1, 15),
-(2, 'HW 2: Pipes and Redirection', 1, 15),
-(2, 'Quiz 1: Shell Variables & Environment', 2, 40),
-(2, 'Automation Scripting Lab: Heredocs', 4, 80),
-(2, 'HW 3: Regular Expressions & Grep', 1, 15),
-(2, 'Final Practical: Cronjob Automation', 3, 120),
-(3, 'Lab 1: Object-Oriented Design', 4, 80),
-(3, 'HW 1: Class Structures & Inheritance', 1, 25),
-(3, 'Quiz: Polymorphism & Interfaces', 2, 50),
-(3, 'Unit 1 Exam: OOP Paradigms', 3, 100),
-(3, 'Lab 2: Custom Exception Handling', 4, 60),
-(3, 'HW 2: File I/O Streams', 1, 25),
-(3, 'Project: Student Records Manager', 4, 150),
-(4, 'HW 1: Time Complexity & Big-O Notation', 1, 30),
-(4, 'Lab 1: Implementing Custom Linked Lists', 4, 90),
-(4, 'Quiz: Stacks and Queues mechanics', 2, 45),
-(4, 'Midterm: Linear Data Structures', 3, 100),
-(4, 'Lab 2: Binary Search Tree Traversals', 4, 90),
-(4, 'HW 2: Graph Representations', 1, 30),
-(4, 'Final Project: Shortest Path Router', 4, 200),
-(5, 'AP CS A: Primitive Types Quiz', 2, 30),
-(5, 'AP CS A: Using Objects Lab', 4, 100),
-(5, 'AP CS A: Boolean Expressions HW', 1, 20),
-(5, 'Unit 1 Exam: Control Structures', 3, 100),
-(6, 'DSA: Big-O Algorithm Analysis HW', 1, 25),
-(6, 'DSA: Array-Based Lists Implementation', 4, 100),
-(6, 'DSA: Midterm Exam (Linear Structures)', 3, 100),
-(7, 'Adv Java: Interface Polymorphism Lab', 4, 90),
-(7, 'Adv Java: Generics and Collections HW', 1, 30),
-(7, 'Adv Java: Unit Test - OOP Architecture', 3, 100),
-(8, 'DSA: Stack and Queue Implementations', 4, 100),
-(8, 'DSA: Recursion Patterns HW', 1, 25),
-(8, 'DSA: Quiz on Linked Structures', 2, 40),
-(9, 'AP CS A: Writing Classes Lab', 4, 100),
-(9, 'AP CS A: Array Fundamentals HW', 1, 20),
-(9, 'Unit 2 Exam: Arrays and ArrayLists', 3, 100),
-(10, 'Adv Java: Multi-threading & Concurrency Lab', 4, 100),
-(10, 'Adv Java: Custom Exception Handling HW', 1, 25),
-(10, 'Adv Java: Quiz on Stream APIs', 2, 50),
-(11, 'DSA: Binary Search Tree Traversals Lab', 4, 100),
-(11, 'DSA: AVL Tree Rotation HW', 1, 30),
-(11, 'DSA: Unit Exam (Non-linear Structures)', 3, 100),
-(12, 'AP CS A: 2D Array Matrix Lab', 4, 100),
-(12, 'AP CS A: Inheritance & Subclasses HW', 1, 20),
-(12, 'Unit 3 Exam: OOP & Inheritance', 3, 100),
-(13, 'DSA: Graph Representations & BFS/DFS Lab', 4, 100),
-(13, 'DSA: Shortest Path Algorithms HW', 1, 30),
-(13, 'DSA: Final Project - Network Routing Optimizer', 4, 200),
-(14, 'AP CS A: Recursion Practice Set', 1, 25),
-(14, 'AP CS A: Mock Exam Multiple Choice', 3, 80),
-(14, 'AP CS A: Final FRQ Portfolio Lab', 4, 150),
-(15, 'DSA: Hash Map Collisions Lab', 4, 100),
-(15, 'DSA: Sorting Algorithms Comparison HW', 1, 30),
-(15, 'DSA: Final Exam', 3, 150);
+DROP PROCEDURE IF EXISTS GenerateOfferingsAssignments;
+
+DELIMITER //
+
+CREATE PROCEDURE GenerateOfferingsAssignments()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE current_offering_id INT;
+    DECLARE i INT;
+
+    -- Cursor to find every single course offering dynamically
+    DECLARE offering_cursor CURSOR FOR SELECT offering_id FROM course_offerings;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN offering_cursor;
+
+    read_loop: LOOP
+        FETCH offering_cursor INTO current_offering_id;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- 1. Insert 12 Minor Assessments (Type ID: 1 or 2 depending on your schema setup, max_points = 100)
+        SET i = 1;
+        WHILE i <= 12 DO
+            INSERT INTO assignments (offering_id, assignment_name, type_id, max_points)
+            VALUES (current_offering_id, CONCAT('Minor Assignment ', i), 1, 100);
+            SET i = i + 1;
+        END WHILE;
+
+        -- 2. Insert 3 Major Assessments (Type ID: 3, max_points = 100)
+        SET i = 1;
+        WHILE i <= 3 DO
+            INSERT INTO assignments (offering_id, assignment_name, type_id, max_points)
+            VALUES (current_offering_id, CONCAT('Major Exam ', i), 3, 100);
+            SET i = i + 1;
+        END WHILE;
+
+    END LOOP;
+
+    CLOSE offering_cursor;
+END //
+
+DELIMITER ;
+
+-- Run the generator
+CALL GenerateOfferingsAssignments();
+
+-- Clean up database environment
+DROP PROCEDURE IF EXISTS GenerateOfferingsAssignments;
 SQL_EOF
+
+if [ $? -eq 0 ]; then
+    echo "✔ Successfully populated 15 standardized assignments for all course offerings."
+else
+    echo "❌ Failed to populate assignments."
+fi
 INSTALLER_EOF
 
 # downloading populate_grades.sh
@@ -5504,7 +5497,7 @@ cat <<'INSTALLER_EOF' > "$FILES_DIR/populate_grades.sh"
 
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
 INSERT INTO student_assignments (student_id, assignment_id, grade)
-SELECT r.student_id, a.assignment_id, FLOOR(65 + (RAND() * 35))
+SELECT r.student_id, a.assignment_id, FLOOR(75 + (RAND() * 26))
 FROM rosters r
 JOIN assignments a ON r.offering_id = a.offering_id;
 SQL_EOF
