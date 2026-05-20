@@ -5592,7 +5592,11 @@ BEGIN
         SELECT current_student_id, offering_id
         FROM (
             SELECT co.offering_id, co.period,
-                ROW_NUMBER() OVER (PARTITION BY student_id ORDER BY offering_id)
+                ROW_NUMBER() OVER (
+                    PARTITION BY student_id
+                    ORDER BY RAND()
+                    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                )
             FROM course_offerings co
         ) as shuffled_offerings
         WHERE rn = 1;
