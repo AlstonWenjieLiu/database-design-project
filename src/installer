@@ -10,6 +10,7 @@ mkdir -p "$FILES_DIR"
 
 touch "$BASE_DIR/launcher.sh"
 touch "$BASE_DIR/uninstaller.sh"
+touch "$APP_DIR/CAT"
 touch "$FILES_DIR/create_tables.sh"
 touch "$FILES_DIR/populate.sh"
 touch "$FILES_DIR/populate_teachers.sh"
@@ -162,6 +163,108 @@ SQL_EOF
             ;;
     esac
 done
+
+INSTALLER_EOF
+
+# downloading uninstaller.sh
+cat <<'INSTALLER_EOF' > "$BASE_DIR/uninstaller.sh"
+#!/bin/bash
+
+# Define project directories locally inside the uninstaller
+BASE_DIR="/home/$USER/Projects/DatabaseDesign"
+APP_DIR="$BASE_DIR/database_app"
+
+echo "========================================="
+echo "   BTHS DATABASE UNINSTALLER SYSTEM     "
+echo "========================================="
+echo "WARNING: This will purge all tables and delete application files."
+echo -n "Are you sure you want to proceed? (y/N): "
+read CONFIRM
+
+if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+    echo "Uninstall canceled."
+    exit 0
+fi
+
+# 1. Ask for database credentials to drop tables
+echo -n "Enter your MySQL Username to purge tables: "
+read DB_USER
+echo -n "Enter your Password: "
+read -s DB_PASS
+echo ""
+
+DB_NAME="${DB_USER}_db"
+
+echo "Purging all tables inside database '$DB_NAME'..."
+mysql -h "localhost" -u "$DB_USER" -p"$DB_PASS" -D "$DB_NAME" -e "
+    SET FOREIGN_KEY_CHECKS = 0;
+    DROP TABLE IF EXISTS assignment_types;
+    DROP TABLE IF EXISTS course_offerings;
+    DROP TABLE IF EXISTS course_types;
+    DROP TABLE IF EXISTS courses;
+    DROP TABLE IF EXISTS departments;
+    DROP TABLE IF EXISTS rooms;
+    DROP TABLE IF EXISTS rosters;
+    DROP TABLE IF EXISTS student_assignments;
+    DROP TABLE IF EXISTS students;
+    DROP TABLE IF EXISTS teachers;
+    DROP TABLE IF EXISTS assignments;
+    SET FOREIGN_KEY_CHECKS = 1;
+" 2>/dev/null
+
+if [ $? -eq 0 ]; then
+    echo "✔ Tables purged successfully."
+else
+    echo "❌ Failed to purge tables. Moving forward with file removal anyway."
+fi
+
+# 2. Delete the entire database_app directory folder
+echo "Removing application folder from $APP_DIR..."
+if [ -d "$APP_DIR" ]; then
+    rm -rf "$APP_DIR"
+    echo "✔ Cleaned out internal components and database_app directory."
+fi
+
+# 3. Delete the launcher script
+if [ -f "$BASE_DIR/launcher.sh" ]; then
+    rm -f "$BASE_DIR/launcher.sh"
+    echo "✔ Launcher removed."
+fi
+
+# 4. Deleting the installer configuration file
+if [ -f "$BASE_DIR/database_design_project_installer.sh" ]; then
+    rm -f "$BASE_DIR/database_design_project_installer.sh"
+    echo "✔ Original installer template removed."
+fi
+
+echo "-----------------------------------------"
+echo "Uninstall complete! BTHS Database has been removed."
+echo "Note: This uninstaller script will now close. You can manually delete this file."
+echo "========================================="
+
+INSTALLER_EOF
+
+# downloading uninstaller.sh
+cat <<'INSTALLER_EOF' > "$APP_DIR/CAT"
+⠀⠀⠀⠀⢠⡶⠚⢷⣤⡀⠀⠀⠀⠀⠀⣲⡶⠛⠻⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢠⡿⠁⠀⠀⠙⣷⣄⠀⢀⣴⡟⠁⠀⠀⢷⢹⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣾⠃⠀⠠⠶⠚⠛⠛⠛⠛⠋⠀⠀⣀⡀⢸⠈⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⢸⣏⡔⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠚⠉⠉⣿⠀⢹⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⢾⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⢠⣿⢠⣶⡆⠀⠀⠀⠀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀
+⢒⡾⠁⠘⠟⠁⠀⠀⠀⠀⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀
+⠉⣧⠀⠀⠀⠀⠃⠀⠀⠀⠈⠉⠠⣍⠀⠀⠀⠀⠀⠀⣸⡇⢀⣤⠶⠛⠛⠻⢦⣄
+⠀⠸⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⡟⣴⠟⠁⠀⠀⠀⠀⠀⢻
+⠀⠀⠀⠛⣷⡦⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣤⡴⠞⠋⢠⡟⠀⠀⠀⠀⠀⠀⢀⡾
+⠀⠀⠀⢰⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠳⣤⡀⢸⠃⠀⠀⠀⠀⢠⡶⠟⠁
+⠀⠀⠀⣸⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣹⡄⠀⠀⠀⠀⣼⠀⠀⠀
+⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣇⠀⠀⠀⠀⢹⡄⠀⠀
+⠀⠀⠀⢸⡀⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⡄⠀⠀⠀⠈⣧⠀⠀
+⠀⠀⠀⢸⡇⠘⡇⠀⠀⠀⠀⠀⠀⠀⣀⠀⠀⠀⠀⠀⠀⢸⣿⠀⠀⠀⠀⢹⡇⠀
+⠀⠀⠀⢸⡇⠀⠙⠀⠀⠀⠀⠀⢠⠞⠁⠀⠀⠀⠀⠀⠀⠀⣿⠇⠀⠀⠀⢸⡇⠀
+⠀⠀⠀⢸⡇⠀⢸⡆⠀⠀⠀⠀⣟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠛⠀⠀⠀⠀⣸⠇⠀
+⠀⠀⠀⢸⣿⠀⠀⡇⠀⠀⠀⠀⣿⡀⠀⠀⠀⠀⠀⠀⠀⢀⡇⠀⠀⢀⣴⡟⠁⠀
+⠀⠀⠀⠘⠿⠶⢶⢧⣦⣦⡴⢾⣥⣽⣤⣤⣤⣤⣤⣤⡴⣯⡤⠴⠶⠛⠋⠀⠀⠀
 
 INSTALLER_EOF
 
@@ -5600,83 +5703,6 @@ SQL_EOF
 
 INSTALLER_EOF
 
-# downloading uninstaller.sh
-cat <<'INSTALLER_EOF' > "$BASE_DIR/uninstaller.sh"
-#!/bin/bash
-
-# Define project directories locally inside the uninstaller
-BASE_DIR="/home/$USER/Projects/DatabaseDesign"
-APP_DIR="$BASE_DIR/database_app"
-
-echo "========================================="
-echo "   BTHS DATABASE UNINSTALLER SYSTEM     "
-echo "========================================="
-echo "WARNING: This will purge all tables and delete application files."
-echo -n "Are you sure you want to proceed? (y/N): "
-read CONFIRM
-
-if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
-    echo "Uninstall canceled."
-    exit 0
-fi
-
-# 1. Ask for database credentials to drop tables
-echo -n "Enter your MySQL Username to purge tables: "
-read DB_USER
-echo -n "Enter your Password: "
-read -s DB_PASS
-echo ""
-
-DB_NAME="${DB_USER}_db"
-
-echo "Purging all tables inside database '$DB_NAME'..."
-mysql -h "localhost" -u "$DB_USER" -p"$DB_PASS" -D "$DB_NAME" -e "
-    SET FOREIGN_KEY_CHECKS = 0;
-    DROP TABLE IF EXISTS assignment_types;
-    DROP TABLE IF EXISTS course_offerings;
-    DROP TABLE IF EXISTS course_types;
-    DROP TABLE IF EXISTS courses;
-    DROP TABLE IF EXISTS departments;
-    DROP TABLE IF EXISTS rooms;
-    DROP TABLE IF EXISTS rosters;
-    DROP TABLE IF EXISTS student_assignments;
-    DROP TABLE IF EXISTS students;
-    DROP TABLE IF EXISTS teachers;
-    DROP TABLE IF EXISTS assignments;
-    SET FOREIGN_KEY_CHECKS = 1;
-" 2>/dev/null
-
-if [ $? -eq 0 ]; then
-    echo "✔ Tables purged successfully."
-else
-    echo "❌ Failed to purge tables. Moving forward with file removal anyway."
-fi
-
-# 2. Delete the entire database_app directory folder
-echo "Removing application folder from $APP_DIR..."
-if [ -d "$APP_DIR" ]; then
-    rm -rf "$APP_DIR"
-    echo "✔ Cleaned out internal components and database_app directory."
-fi
-
-# 3. Delete the launcher script
-if [ -f "$BASE_DIR/launcher.sh" ]; then
-    rm -f "$BASE_DIR/launcher.sh"
-    echo "✔ Launcher removed."
-fi
-
-# 4. Deleting the installer configuration file
-if [ -f "$BASE_DIR/database_design_project_installer.sh" ]; then
-    rm -f "$BASE_DIR/database_design_project_installer.sh"
-    echo "✔ Original installer template removed."
-fi
-
-echo "-----------------------------------------"
-echo "Uninstall complete! BTHS Database has been removed."
-echo "Note: This uninstaller script will now close. You can manually delete this file."
-echo "========================================="
-
-INSTALLER_EOF
 DATABASE_DESIGN_PROJECT
 
 chmod +x /home/$USER/Projects/DatabaseDesign/database_design_project_installer.sh
