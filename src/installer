@@ -5592,6 +5592,7 @@ BEGIN
         SELECT current_student_id, offering_id
         FROM (
             SELECT co.offering_id, co.period,
+                -- change
                 ROW_NUMBER() OVER (
                     PARTITION BY student_id
                     ORDER BY RAND()
