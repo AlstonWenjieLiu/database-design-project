@@ -102,7 +102,7 @@ cat <<'INSTALLER_EOF' > "$FILES_DIR/populate.sh"
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
 INSERT INTO departments (department_name) VALUES ('Math'), ('Science'), ('English'), ('History'), ('Technology'), ('Clubs');
 INSERT INTO course_types (type_name) VALUES ('Regents'), ('AP'), ('Elective');
-INSERT INTO assignment_types (type_name) VALUES ('Homework'), ('Quiz'), ('Test'), ('Project');
+INSERT INTO assignment_types (type_name) VALUES ('Minor'), ('Major');
 SQL_EOF
 INSTALLER_EOF
 
@@ -5415,7 +5415,7 @@ INSTALLER_EOF
 cat <<'INSTALLER_EOF' > "$FILES_DIR/populate_assignments.sh"
 #!/bin/bash
 
-echo "Generating 15 assignments (12 minor, 3 major) for ALL course offerings..."
+echo "Generating 15 categorized assignments (12 minor, 3 major) for ALL course offerings..."
 
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
 DROP PROCEDURE IF EXISTS GenerateOfferingsAssignments;
@@ -5428,7 +5428,7 @@ BEGIN
     DECLARE current_offering_id INT;
     DECLARE i INT;
 
-    -- Cursor to find every single course offering dynamically
+    -- Cursor to iterate through every unique course offering dynamically
     DECLARE offering_cursor CURSOR FOR SELECT offering_id FROM course_offerings;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
@@ -5440,19 +5440,23 @@ BEGIN
             LEAVE read_loop;
         END IF;
 
-        -- 1. Insert 12 Minor Assessments (Type ID: 1 or 2 depending on your schema setup, max_points = 100)
+        -- =========================================================
+        -- 1. INSERT 12 MINOR ASSESSMENTS (type_id = 1)
+        -- =========================================================
         SET i = 1;
         WHILE i <= 12 DO
             INSERT INTO assignments (offering_id, assignment_name, type_id, max_points)
-            VALUES (current_offering_id, CONCAT('Minor Assignment ', i), 1, 100);
+            VALUES (current_offering_id, CONCAT('Minor Assessment ', i), 1, 100);
             SET i = i + 1;
         END WHILE;
 
-        -- 2. Insert 3 Major Assessments (Type ID: 3, max_points = 100)
+        -- =========================================================
+        -- 2. INSERT 3 MAJOR ASSESSMENTS (type_id = 2)
+        -- =========================================================
         SET i = 1;
         WHILE i <= 3 DO
             INSERT INTO assignments (offering_id, assignment_name, type_id, max_points)
-            VALUES (current_offering_id, CONCAT('Major Exam ', i), 3, 100);
+            VALUES (current_offering_id, CONCAT('Major Assessment ', i), 2, 100);
             SET i = i + 1;
         END WHILE;
 
@@ -5463,15 +5467,15 @@ END //
 
 DELIMITER ;
 
--- Run the generator
+-- Run the assignment generator
 CALL GenerateOfferingsAssignments();
 
--- Clean up database environment
+-- Clean up stored procedure environment
 DROP PROCEDURE IF EXISTS GenerateOfferingsAssignments;
 SQL_EOF
 
 if [ $? -eq 0 ]; then
-    echo "✔ Successfully populated 15 standardized assignments for all course offerings."
+    echo "✔ Successfully populated 15 categorized assignments for all course offerings."
 else
     echo "❌ Failed to populate assignments."
 fi
