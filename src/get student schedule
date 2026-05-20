@@ -8,5 +8,5 @@ JOIN course_offerings co ON ros.offering_id = co.offering_id
 JOIN courses c ON co.course_id = c.course_id
 JOIN teachers t ON co.teacher_id = t.teacher_id
 JOIN rooms rm ON co.room_id = rm.room_id
-WHERE ros.student_id = 2
+WHERE ros.student_id = 1
 ORDER BY co.period ASC;
