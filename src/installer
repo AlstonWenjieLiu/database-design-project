@@ -58,7 +58,7 @@ while true; do
     echo "========================================="
     echo "      BTHS ADMINISTRATION      "
     echo "========================================="
-    echo "1) Rebuild and Repopulate Database"
+    echo "1) Build and Populate Database"
     echo "2) View Student Schedule"
     echo "3) View Teacher Schedule"
     echo "4) Exit Portal"
@@ -70,7 +70,7 @@ while true; do
         1)
             echo ""
             echo "⚠ WARNING: This will drop existing tables and wipe current data."
-            echo -n "Are you sure you want to completely rebuild? (y/n): "
+            echo -n "Are you sure? (y/n): "
             read CONFIRM
             if [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]; then
                 echo ""
@@ -96,9 +96,9 @@ while true; do
                 JOIN students s ON sa.student_id = s.student_id
                 JOIN assignments a ON sa.assignment_id = a.assignment_id
                 LIMIT 10;"
-                echo "✔ Database rebuild process finished successfully."
+                echo "✔ Database build and population process finished successfully."
             else
-                echo "Rebuild aborted."
+                echo "Build aborted."
             fi
             echo ""
             ;;
@@ -162,6 +162,7 @@ SQL_EOF
             ;;
     esac
 done
+
 INSTALLER_EOF
 
 # downloading create_tables.sh
@@ -189,6 +190,7 @@ CREATE TABLE assignments (assignment_id INT AUTO_INCREMENT PRIMARY KEY, offering
 CREATE TABLE student_assignments (sa_id INT AUTO_INCREMENT PRIMARY KEY, student_id INT, assignment_id INT, grade INT, FOREIGN KEY (student_id) REFERENCES students(student_id), FOREIGN KEY (assignment_id) REFERENCES assignments(assignment_id));
 SET FOREIGN_KEY_CHECKS = 1;
 SQL_EOF
+
 INSTALLER_EOF
 
 # downloading populate.sh
@@ -200,6 +202,7 @@ INSERT INTO departments (department_name) VALUES ('Math'), ('Science'), ('Englis
 INSERT INTO course_types (type_name) VALUES ('Regents'), ('AP'), ('Elective');
 INSERT INTO assignment_types (type_name) VALUES ('Minor'), ('Major');
 SQL_EOF
+
 INSTALLER_EOF
 
 # downloading populate_teachers.sh
@@ -295,6 +298,7 @@ INSERT INTO teachers (first_name, last_name) VALUES
 ('Jean-Paul', 'Torres'), ('Nancy', 'Villalba'), ('Ioana', 'Wicker'), ('Xiaohong', 'Wu'),
 ('Peihong', 'Ye');
 SQL_EOF
+
 INSTALLER_EOF
 
 # downloading populate_rooms.sh
@@ -334,6 +338,7 @@ mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" < "$ROOMS_SQL"
 rm "$ROOMS_SQL"
 
 echo "✔ Successfully loaded all 720 rubric-compliant rooms."
+
 INSTALLER_EOF
 
 # downloading populate_courses.sh
@@ -374,6 +379,7 @@ mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
         ('AP Chinese Language & Culture', 6, 2),-- type_id: 2 (AP)
         ('American Sign Language III', 6, 1);   -- type_id: 1 (Regents / Standard)
 SQL_EOF
+
 INSTALLER_EOF
 
 # downloading populate_course_offerings.sh
@@ -437,6 +443,7 @@ if [ $? -eq 0 ]; then
 else
     echo "❌ Failed to generate course offerings."
 fi
+
 INSTALLER_EOF
 
 # downloading populate_students.sh
@@ -5445,6 +5452,7 @@ insert into students (first_name, last_name) values ('Igor', 'Geri');
 insert into students (first_name, last_name) values ('Seline', 'Conkay');
 insert into students (first_name, last_name) values ('Andrej', 'Stork');
 SQL_EOF
+
 INSTALLER_EOF
 
 # downloading populate_roster.sh
@@ -5505,6 +5513,7 @@ if [ $? -eq 0 ]; then
 else
     echo "❌ Failed to generate student schedules."
 fi
+
 INSTALLER_EOF
 
 # downloading populate_assignments.sh
@@ -5575,6 +5584,7 @@ if [ $? -eq 0 ]; then
 else
     echo "❌ Failed to populate assignments."
 fi
+
 INSTALLER_EOF
 
 # downloading populate_grades.sh
@@ -5587,6 +5597,7 @@ SELECT r.student_id, a.assignment_id, FLOOR(75 + (RAND() * 26))
 FROM rosters r
 JOIN assignments a ON r.offering_id = a.offering_id;
 SQL_EOF
+
 INSTALLER_EOF
 
 # downloading uninstaller.sh
@@ -5664,6 +5675,7 @@ echo "-----------------------------------------"
 echo "Uninstall complete! BTHS Database has been removed."
 echo "Note: This uninstaller script will now close. You can manually delete this file."
 echo "========================================="
+
 INSTALLER_EOF
 DATABASE_DESIGN_PROJECT
 
