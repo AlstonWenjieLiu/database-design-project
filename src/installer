@@ -28,6 +28,9 @@ chmod +x "$FILES_DIR"/*.sh
 cat <<'INSTALLER_EOF' > "$BASE_DIR/launcher.sh"
 #!/bin/bash
 
+# =========================================================
+# 1. CREDENTIAL INITIALIZATION & ENVIRONMENT SETUP
+# =========================================================
 # Ask for Username
 echo -n "Enter your MySQL Username: "
 read USER
@@ -38,34 +41,127 @@ echo -n "Enter your OSIS (Password): "
 read -s PASS
 echo "" # Adds a new line since read -s doesn't
 
-# Set the database based on the input
+# Set the database variables based on the input
 export USER="$USER"
 export PASS="$PASS"
 export DB="${USER}_db"
 export HOST="127.0.0.1"
 FILES_DIR="/home/$USER/Projects/DatabaseDesign/database_app/files"
 
-echo "--- Starting Project Saturn Automation for $USER ---"
+echo "--- Welcome to Project Saturn Administrative Portal, $USER ---"
+echo ""
 
-bash "$FILES_DIR/create_tables.sh"
-bash "$FILES_DIR/populate.sh"
-bash "$FILES_DIR/populate_teachers.sh"
-bash "$FILES_DIR/populate_rooms.sh"
-bash "$FILES_DIR/populate_students.sh"
-bash "$FILES_DIR/populate_courses.sh"
-bash "$FILES_DIR/populate_course_offerings.sh"
-bash "$FILES_DIR/populate_roster.sh"
-bash "$FILES_DIR/populate_assignments.sh"
-bash "$FILES_DIR/populate_grades.sh"
+# =========================================================
+# 2. INTERACTIVE MENU LOOP
+# =========================================================
+while true; do
+    echo "========================================="
+    echo "      PROJECT SATURN ADMINISTRATION      "
+    echo "========================================="
+    echo "1) Rebuild and Repopulate Database"
+    echo "2) View Student Schedule"
+    echo "3) View Teacher Schedule"
+    echo "4) Exit Portal"
+    echo "========================================="
+    echo -n "Select an option [1-4]: "
+    read OPTION
 
-echo "--- Sample Grade Report ---"
-mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" -e "
-SELECT s.first_name, a.assignment_name, sa.grade
-FROM student_assignments sa
-JOIN students s ON sa.student_id = s.student_id
-JOIN assignments a ON sa.assignment_id = a.assignment_id
-LIMIT 10;"
+    case $OPTION in
+        1)
+            echo ""
+            echo "⚠ WARNING: This will drop existing tables and wipe current data."
+            echo -n "Are you sure you want to completely rebuild? (y/n): "
+            read CONFIRM
+            if [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]; then
+                echo ""
+                echo "--- Starting Project Saturn Automation Execution ---"
 
+                # Execute your structured population pipeline sequentially
+                bash "$FILES_DIR/create_tables.sh"
+                bash "$FILES_DIR/populate.sh"
+                bash "$FILES_DIR/populate_teachers.sh"
+                bash "$FILES_DIR/populate_rooms.sh"
+                bash "$FILES_DIR/populate_students.sh"
+                bash "$FILES_DIR/populate_courses.sh"
+                bash "$FILES_DIR/populate_course_offerings.sh"
+                bash "$FILES_DIR/populate_roster.sh"
+                bash "$FILES_DIR/populate_assignments.sh"
+                bash "$FILES_DIR/populate_grades.sh"
+
+                echo ""
+                echo "--- Sample Grade Report (Verification) ---"
+                mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" -t -e "
+                SELECT s.first_name, a.assignment_name, sa.grade
+                FROM student_assignments sa
+                JOIN students s ON sa.student_id = s.student_id
+                JOIN assignments a ON sa.assignment_id = a.assignment_id
+                LIMIT 10;"
+                echo "✔ Database rebuild process finished successfully."
+            else
+                echo "Rebuild aborted."
+            fi
+            echo ""
+            ;;
+
+        2)
+            echo ""
+            echo -n "Enter Student ID (1-5000): "
+            read SEARCH_STUDENT
+            echo ""
+            echo "--- Schedule for Student ID: $SEARCH_STUDENT ---"
+
+            # Formats the student's personal daily room path cleanly
+            mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" -t <<SQL_EOF
+SELECT
+    co.period AS 'Period',
+    c.course_name AS 'Course Name',
+    CONCAT(t.first_name, ' ', t.last_name) AS 'Teacher',
+    rm.room_name AS 'Room'
+FROM rosters ros
+JOIN course_offerings co ON ros.offering_id = co.offering_id
+JOIN courses c ON co.course_id = c.course_id
+JOIN teachers t ON co.teacher_id = t.teacher_id
+JOIN rooms rm ON co.room_id = rm.room_id
+WHERE ros.student_id = $SEARCH_STUDENT
+ORDER BY co.period ASC;
+SQL_EOF
+            echo ""
+            ;;
+
+        3)
+            echo ""
+            echo -n "Enter Teacher ID: "
+            read SEARCH_TEACHER
+            echo ""
+            echo "--- Schedule for Teacher ID: $SEARCH_TEACHER ---"
+
+            # Displays the single teacher room/course routing per period
+            mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" -t <<SQL_EOF
+SELECT
+    co.period AS 'Period',
+    c.course_name AS 'Course Name',
+    rm.room_name AS 'Room'
+FROM course_offerings co
+JOIN courses c ON co.course_id = c.course_id
+JOIN rooms rm ON co.room_id = rm.room_id
+WHERE co.teacher_id = $SEARCH_TEACHER
+ORDER BY co.period ASC;
+SQL_EOF
+            echo ""
+            ;;
+
+        4)
+            echo ""
+            echo "Exiting Project Saturn Portal. Database connection severed safely."
+            break
+            ;;
+
+        *)
+            echo "❌ Invalid selection. Please pick a number from 1 to 4."
+            echo ""
+            ;;
+    esac
+done
 INSTALLER_EOF
 
 # downloading create_tables.sh
