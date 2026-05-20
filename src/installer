@@ -48,7 +48,7 @@ export DB="${USER}_db"
 export HOST="127.0.0.1"
 FILES_DIR="/home/$USER/Projects/DatabaseDesign/database_app/files"
 
-echo "--- Welcome to Project Saturn Administrative Portal, $USER ---"
+echo "--- Welcome to BTHS's Administrative Portal, $USER ---"
 echo ""
 
 # =========================================================
@@ -56,7 +56,7 @@ echo ""
 # =========================================================
 while true; do
     echo "========================================="
-    echo "      PROJECT SATURN ADMINISTRATION      "
+    echo "      BTHS ADMINISTRATION      "
     echo "========================================="
     echo "1) Rebuild and Repopulate Database"
     echo "2) View Student Schedule"
@@ -74,7 +74,7 @@ while true; do
             read CONFIRM
             if [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]; then
                 echo ""
-                echo "--- Starting Project Saturn Automation Execution ---"
+                echo "--- Starting Execution ---"
 
                 # Execute your structured population pipeline sequentially
                 bash "$FILES_DIR/create_tables.sh"
@@ -152,7 +152,7 @@ SQL_EOF
 
         4)
             echo ""
-            echo "Exiting Project Saturn Portal. Database connection severed safely."
+            echo "Exiting BTHS Database Portal. Database connection severed safely."
             break
             ;;
 
@@ -5598,7 +5598,7 @@ BASE_DIR="/home/$USER/Projects/DatabaseDesign"
 APP_DIR="$BASE_DIR/database_app"
 
 echo "========================================="
-echo "   PROJECT SATURN UNINSTALLER SYSTEM     "
+echo "   BTHS DATABASE UNINSTALLER SYSTEM     "
 echo "========================================="
 echo "WARNING: This will purge all tables and delete application files."
 echo -n "Are you sure you want to proceed? (y/N): "
@@ -5661,7 +5661,7 @@ if [ -f "$BASE_DIR/database_design_project_installer.sh" ]; then
 fi
 
 echo "-----------------------------------------"
-echo "Uninstall complete! Project Saturn has been removed."
+echo "Uninstall complete! BTHS Database has been removed."
 echo "Note: This uninstaller script will now close. You can manually delete this file."
 echo "========================================="
 INSTALLER_EOF
