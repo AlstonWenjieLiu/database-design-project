@@ -101,7 +101,7 @@ cat <<'INSTALLER_EOF' > "$FILES_DIR/populate.sh"
 
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
 INSERT INTO departments (department_name) VALUES ('Math'), ('Science'), ('English'), ('History'), ('Technology'), ('Clubs');
-INSERT INTO course_types (type_name) VALUES ('Regents'), ('Honors'), ('AP'), ('Elective');
+INSERT INTO course_types (type_name) VALUES ('Regents'), ('AP'), ('Elective');
 INSERT INTO assignment_types (type_name) VALUES ('Homework'), ('Quiz'), ('Test'), ('Project');
 SQL_EOF
 INSTALLER_EOF
@@ -247,36 +247,36 @@ cat <<'INSTALLER_EOF' > "$FILES_DIR/populate_courses.sh"
 mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" <<\SQL_EOF
         INSERT INTO courses (course_name, department_id, type_id) VALUES
         -- --- Computer Science Department (ID: 5) ---
-        ('Software Engineering', 5, 4),        -- course_id: 1
-        ('AP Computer Science A', 5, 3),       -- course_id: 2
-        ('Advanced Java Applications', 5, 2),  -- course_id: 3
-        ('Data Structures & Algorithms', 5, 4),-- course_id: 4
+        ('Software Engineering', 5, 3),        -- type_id: 3 (Elective)
+        ('AP Computer Science A', 5, 2),       -- type_id: 2 (AP)
+        ('Advanced Java Applications', 5, 1),  -- type_id: 1 (Regents / Advanced standard)
+        ('Data Structures & Algorithms', 5, 3),-- type_id: 3 (Elective)
 
         -- --- Mathematics Department (ID: 1) ---
-        ('AP Calculus BC', 1, 3),               -- course_id: 5
-        ('Linear Algebra', 1, 2),               -- course_id: 6
-        ('Pre-Calculus Honors', 1, 2),          -- course_id: 7
-        ('Statistics & Data Science', 1, 4),    -- course_id: 8
+        ('AP Calculus BC', 1, 2),               -- type_id: 2 (AP)
+        ('Linear Algebra', 1, 1),               -- type_id: 1 (Regents / Standard)
+        ('Pre-Calculus Honors', 1, 1),          -- type_id: 1 (Regents / Standard)
+        ('Statistics & Data Science', 1, 3),    -- type_id: 3 (Elective)
 
         -- --- Science Department (ID: 2) ---
-        ('AP Physics C: Mechanics', 2, 3),     -- course_id: 9
-        ('AP Chemistry', 2, 3),                 -- course_id: 10
-        ('Organic Chemistry', 2, 2),            -- course_id: 11
-        ('Digital Electronics', 2, 4),          -- course_id: 12
+        ('AP Physics C: Mechanics', 2, 2),     -- type_id: 2 (AP)
+        ('AP Chemistry', 2, 2),                 -- type_id: 2 (AP)
+        ('Organic Chemistry', 2, 1),            -- type_id: 1 (Regents / Standard)
+        ('Digital Electronics', 2, 3),          -- type_id: 3 (Elective)
 
         -- --- English & Humanities (ID: 3) ---
-        ('AP English Literature', 3, 3),        -- course_id: 13
-        ('Creative Writing Portfolio', 3, 4),   -- course_id: 14
-        ('Public Speaking & Debate', 3, 1),     -- course_id: 15
+        ('AP English Literature', 3, 2),        -- type_id: 2 (AP)
+        ('Creative Writing Portfolio', 3, 3),   -- type_id: 3 (Elective)
+        ('Public Speaking & Debate', 3, 1),     -- type_id: 1 (Regents / Standard)
 
         -- --- Social Studies & History (ID: 4) ---
-        ('AP United States History', 4, 3),     -- course_id: 16
-        ('AP Macroeconomics', 4, 3),            -- course_id: 17
-        ('Constitutional Law', 4, 2),           -- course_id: 18
+        ('AP United States History', 4, 2),     -- type_id: 2 (AP)
+        ('AP Macroeconomics', 4, 2),            -- type_id: 2 (AP)
+        ('Constitutional Law', 4, 1),           -- type_id: 1 (Regents / Standard)
 
         -- --- World Languages & Culture (ID: 6) ---
-        ('AP Chinese Language & Culture', 6, 3),-- course_id: 19
-        ('American Sign Language III', 6, 2);   -- course_id: 20
+        ('AP Chinese Language & Culture', 6, 2),-- type_id: 2 (AP)
+        ('American Sign Language III', 6, 1);   -- type_id: 1 (Regents / Standard)
 SQL_EOF
 INSTALLER_EOF
 
