@@ -196,7 +196,7 @@ echo ""
 DB_NAME="${DB_USER}_db"
 
 echo "Purging all tables inside database '$DB_NAME'..."
-mysql -h "localhost" -u "$DB_USER" -p"$DB_PASS" -D "$DB_NAME" -e "
+mysql -u "$DB_USER" -p"$DB_PASS" -h 127.0.0.1 -D "$DB_NAME" -e "
     SET FOREIGN_KEY_CHECKS = 0;
     DROP TABLE IF EXISTS assignment_types;
     DROP TABLE IF EXISTS course_offerings;
