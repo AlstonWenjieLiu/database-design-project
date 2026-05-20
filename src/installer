@@ -5579,7 +5579,7 @@ BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     OPEN student_cursor;
-    -- Itadori kun
+    -- Itadori kun kuin
     read_loop: LOOP
         FETCH student_cursor INTO current_student_id;
         IF done THEN
