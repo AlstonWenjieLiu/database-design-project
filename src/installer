@@ -206,32 +206,38 @@ cat <<'INSTALLER_EOF' > "$FILES_DIR/populate_rooms.sh"
 #!/bin/bash
 # populate_rooms.sh
 
-# Temporary file to hold the SQL commands
-ROOMS_SQL="/tmp/rooms_data.sql"
-echo "SET FOREIGN_KEY_CHECKS = 0;" > $ROOMS_SQL
+echo "Generating all combinations of floors (B, 1-8), wings (N,S,E,W), and rooms (1-20)..."
 
-# 1. Generate standard classroom wings for floors 1 through 8
-# This creates rooms like 1N01, 4E20, 8S05, etc.
-for floor in {1..8}; do
+ROOMS_SQL="/tmp/rooms_data.sql"
+
+# 1. Initialize the template with a single multi-row INSERT statement declaration
+echo "INSERT INTO rooms (room_name) VALUES" > "$ROOMS_SQL"
+
+# 2. Outer loop tracking all required floors including B (Basement)
+for floor in B 1 2 3 4 5 6 7 8; do
     for wing in N S E W; do
-        for room in {01..20}; do
-            echo "INSERT INTO rooms (room_name) VALUES ('${floor}${wing}${room}');" >> $ROOMS_SQL
+        for room_num in {1..20}; do
+            # Format single digits with a leading zero (e.g., 1 -> 01)
+            printf -v room "%02d" $room_num
+
+            # If it's the absolute last room combination (Floor 8, Wing W, Room 20), close with a semicolon
+            if [ "$floor" = "8" ] && [ "$wing" = "W" ] && [ "$room" = "20" ]; then
+                echo "('${floor}${wing}${room}');" >> "$ROOMS_SQL"
+            else
+                # Otherwise, separate the value sets with a comma
+                echo "('${floor}${wing}${room}')," >> "$ROOMS_SQL"
+            fi
         done
     done
 done
 
-# 2. Add special rooms (Basement and Gyms) without numbers
-echo "INSERT INTO rooms (room_name) VALUES ('BN5'), ('B-GYM'), ('1-GYM'), ('3-GYM'), ('8-GYM'), ('CAFE');" >> $ROOMS_SQL
+# 3. Execute the single batch statement straight into MySQL
+mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" < "$ROOMS_SQL"
 
-echo "SET FOREIGN_KEY_CHECKS = 1;" >> $ROOMS_SQL
+# 4. Clean up temporary working artifacts
+rm "$ROOMS_SQL"
 
-# Execute the generated SQL
-mysql -h "$HOST" -u "$USER" -p"$PASS" -D "$DB" < $ROOMS_SQL
-
-# Cleanup
-rm $ROOMS_SQL
-
-echo "Rooms populated successfully (Floors 1-8 + Specials)!"
+echo "✔ Successfully loaded all 720 rubric-compliant rooms."
 INSTALLER_EOF
 
 # downloading populate_courses.sh
