@@ -152,7 +152,7 @@ SQL_EOF
 
         4)
             echo ""
-            echo "Exiting BTHS Database Portal. Database connection severed safely."
+            echo "Exiting BTHS Administration Portal. Database connection severed safely."
             break
             ;;
 
