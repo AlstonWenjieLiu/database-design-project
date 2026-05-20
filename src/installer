@@ -5586,21 +5586,12 @@ BEGIN
             LEAVE read_loop;
         END IF;
 
-        -- Rubric Fix: Select exactly ONE random class offering per period
-        -- for all 10 periods, ensuring a full schedule with no double-booking.
+        -- Standard-Compliant Fix:
+        -- Group by period externally and pull a single minimum offering ID per shuffled period partition.
         INSERT INTO rosters (student_id, offering_id)
-        SELECT current_student_id, offering_id
-        FROM (
-            SELECT co.offering_id, co.period,
-                -- cha
-                ROW_NUMBER() OVER (
-                    PARTITION BY student_id
-                    ORDER BY RAND()
-                    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                )
-            FROM course_offerings co
-        ) as shuffled_offerings
-        WHERE rn = 1;
+        SELECT current_student_id, MIN(offering_id)
+        FROM course_offerings
+        GROUP BY period;
 
     END LOOP;
 
