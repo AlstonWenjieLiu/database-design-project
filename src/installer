@@ -244,7 +244,7 @@ echo "========================================="
 
 INSTALLER_EOF
 
-# downloading uninstaller.sh
+# downloading CAT
 cat <<'INSTALLER_EOF' > "$APP_DIR/CAT"
 ⠀⠀⠀⠀⢠⡶⠚⢷⣤⡀⠀⠀⠀⠀⠀⣲⡶⠛⠻⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⢠⡿⠁⠀⠀⠙⣷⣄⠀⢀⣴⡟⠁⠀⠀⢷⢹⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀
