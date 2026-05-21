@@ -166,7 +166,7 @@ done
 
 INSTALLER_EOF
 
-# downloading uninstaller.sh
+# downloading uninstaller.sh (not working)
 cat <<'INSTALLER_EOF' > "$BASE_DIR/uninstaller.sh"
 #!/bin/bash
 
